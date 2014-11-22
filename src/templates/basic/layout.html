@@ -1,0 +1,38 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
+    <meta content="yes" name="apple-mobile-web-app-capable" />
+    <meta content="black" name="apple-mobile-web-app-status-bar-style" />
+    <meta name="format-detection" content="telephone=no" />
+    <title>{% block title %}Git Eye - Keep an eye on git{% endblock %}</title>
+    <script type="text/javascript" src="http://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <!--<script type="text/javascript" src="http://cdn.staticfile.org/twitter-bootstrap/3.1.1/js/bootstrap.min.js"></script>-->
+    <!--<link rel="stylesheet" href="http://cdn.staticfile.org/twitter-bootstrap/3.1.1/css/bootstrap.min.css" />-->
+    <script type="text/javascript" src="http://cdn.staticfile.org/twitter-bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="http://cdn.staticfile.org/twitter-bootstrap/3.1.1/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/static/css/main.css?t=20141122" />
+    {% block stylesheet %}{% endblock %}
+    {% block javascript %}{% endblock %}
+</head>
+<body>
+
+{% block nav %}{% endblock %}
+
+<div class="container-fluid container mt15">
+    <div class="row">
+        <div class="col-md-9 left">
+            {% block main %}{% endblock %}
+        </div>
+
+        <div class="col-md-3 right">
+            {% block sidebar %}{% endblock %}
+        </div>
+    </div>
+</div>
+
+{% include "basic/footer.html" %}
+
+</body>
+</html>

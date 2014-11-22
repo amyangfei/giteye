@@ -1,0 +1,71 @@
+{% extends 'basic/layout.html' %}
+
+{% block nav %}
+    {% include 'basic/nav.html' %}
+{% endblock %}
+
+{% block main %}
+    <div class="container-box">
+        <form class="form-horizontal" action='' method="POST">
+            <fieldset>
+                <div id="legend" class="mb50">
+                    <legend class="">注册</legend>
+                </div>
+                {{ errors|dump_errors }}
+
+                <div class="form-group">
+                    <label class="col-md-2 control-label" for="title">用户名</label>
+                    <div class="col-md-6">
+                        <input class="form-control" id="username" name="username" placeholder="" type="text" value="" />
+                        <p class="help-block">用户名由字母开头，只能含有字母、数字或者下划线</p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-md-2 control-label" for="title">E-mail</label>
+                    <div class="col-md-6">
+                        <input class="form-control" id="email" name="email" placeholder="" type="text" value="" />
+                        <p class="help-block">请输入你的E-mail，便于登录和找回密码</p>
+                    </div>
+                </div>
+
+                <div class="form-group mt30">
+                    <label class="col-md-2 control-label" for="title">密码</label>
+                    <div class="col-md-6">
+                        <input class="form-control" id="password" name="password" placeholder="" type="password" value="" />
+                        <p class="help-block">密码不少于6个字符</p>
+                    </div>
+                </div>
+
+                <div class="form-group mt30">
+                    <label class="col-md-2 control-label" for="title">确认密码</label>
+                    <div class="col-md-6">
+                        <input class="form-control" id="password_confirm" name="password_confirm" placeholder="" type="password" value="" />
+                        <p class="help-block">密码不少于6个字符</p>
+                    </div>
+                </div>
+
+                <div class="form-group mt30">
+                    <label class="col-md-2 control-label" for="title"></label>
+                    <!-- Button -->
+                    <div class="col-md-6">
+                        <button class="btn btn-success">注册</button>
+                    </div>
+                </div>
+
+            </fieldset>
+            {{ xsrf_form_html() }}
+        </form>
+    </div>
+{% endblock %}
+
+{% block sidebar %}
+    <div class="sidenav container-box">
+        <ul>
+            <li class="current"><a href="/setting">用户中心</a></li>
+            <li><a href="/setting/avatar">设置头像</a></li>
+            <li><a href="/setting/password">设置密码</a></li>
+            <li><a href="/">返回首页</a></li>
+        </ul>
+    </div>
+{% endblock %}

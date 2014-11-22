@@ -1,0 +1,6 @@
+tornado==4.0.2
+jinja2==2.7.3
+torndb==0.3
+mysql-python==1.2.5
+redis==2.10.3
+wtforms==2.0.1
