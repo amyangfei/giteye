@@ -4,30 +4,32 @@
 import time
 import tornado.web
 
+import config
+from lib.soapi import soproxy
 from base import BaseHandler
 from form.user import RegisterForm, LoginForm
-from lib.utils import rand_salt, password_hash
+from lib.utils import rand_salt, password_hash, random_name
+from lib.social import GithubAPIClient
 
-def do_login(self, user_id):
-    user_info = self.user_model.get_user_by_uid(user_id)
-    user_id = user_info["uid"]
-    self.session["uid"] = user_id
+def do_login(self, uid):
+    user_info = self.user_model.get_user_by_uid(uid)
+    uid = user_info["uid"]
+    self.session["uid"] = uid
     self.session["username"] = user_info["username"]
     self.session["email"] = user_info["email"]
-    #self.session["password"] = user_info["password"]
     self.session.save()
-    self.set_secure_cookie("user", str(user_id))
+    self.set_secure_cookie("user", str(uid))
 
 def do_logout(self):
     # destroy sessions
     self.session["uid"] = None
     self.session["username"] = None
     self.session["email"] = None
-    #self.session["password"] = None
     self.session.save()
 
     # destroy cookies
     self.clear_cookie("user")
+
 
 class HomeHandler(BaseHandler):
     @tornado.web.authenticated
@@ -85,7 +87,6 @@ class RegisterHandler(BaseHandler):
         template_variables = {}
 
         # validate the fields
-
         form = RegisterForm(self)
 
         if not form.validate():
@@ -93,7 +94,6 @@ class RegisterHandler(BaseHandler):
             return
 
         # validate duplicated
-
         duplicated_email = self.user_model.get_user_by_email(form.email.data)
         duplicated_username = self.user_model.get_user_by_username(form.username.data)
 
@@ -111,7 +111,6 @@ class RegisterHandler(BaseHandler):
 
 
         # continue while validate succeed
-
         salt = rand_salt(16)
         secure_password = password_hash(form.password.data, salt)
 
@@ -126,11 +125,84 @@ class RegisterHandler(BaseHandler):
         if(self.current_user):
             return
 
-        user_id = self.user_model.add_new_user(user_info)
-
-        if(user_id):
-            do_login(self, user_id)
+        uid = self.user_model.add_new_user(user_info)
+        if(uid):
+            do_login(self, uid)
 
         self.redirect("/")
-        #self.redirect(self.get_argument("next", "/"))
+
+
+def _get_client(provider):
+    if provider == 'github':
+        return GithubAPIClient(config.client_id_github,
+                config.client_secret_github,
+                redirect_uri=config.redirect_uri_github)
+    return None
+
+
+def _register_by_oauth(self, access_token, so_user, provider):
+    username = soproxy.make_api_call(provider, 'get_user_soname', so_user)
+    if username is None:
+        username = random_name()
+
+    user_info = {
+        "email": "",
+        "password": "",
+        "username": username,
+        "created": time.strftime('%Y-%m-%d %H:%M:%S'),
+    }
+
+    uid = self.user_model.add_new_user(user_info)
+
+    if(uid):
+        social_uid = soproxy.make_api_call(provider, 'get_user_soid', so_user)
+        so_uname = soproxy.make_api_call(provider, 'get_user_soname', so_user)
+        social_info = {
+            "uid": uid,
+            "provider": provider,
+            "so_uid": social_uid,
+            "so_username": so_uname if so_uname else "",
+            "access_token": access_token,
+        }
+        so_ret = self.socialauth_model.add_new_socialauth(social_info)
+        print so_ret
+
+        do_login(self, uid)
+
+
+class OauthHandler(BaseHandler):
+    def get(self, provider, template_variables = {}):
+        client = _get_client(provider)
+        if client is None:
+            template_variables["errors"] = \
+                    {"invalid_provicer": [u"错误的第三方"]}
+            self.render("user/login.html", **template_variables)
+        else:
+            auth_url = client.get_authorize_url()
+            self.redirect(auth_url)
+
+
+class OauthCallbackHandler(BaseHandler):
+    def get(self, provider, template_variables = {}):
+        oauth_code = self.get_argument('code')
+        self.session['%s_oauth_code' % provider] = oauth_code
+        client = _get_client(provider)
+        resp = client.request_access_token(oauth_code)
+        if 'access_token' not in resp:
+            template_variables["errors"] = \
+                    {"request access_token failed": [u"获取access_token失败"]}
+            self.render("user/login.html", **template_variables)
+        else:
+            so_user = soproxy.make_api_call(
+                    provider, 'get_user_info', resp['access_token'])
+            so_uid = soproxy.make_api_call(
+                    provider, 'get_user_soid', so_user)
+            socialauth = self.socialauth_model.\
+                    get_sa_by_suid_and_provider(so_uid, provider)
+            if socialauth:
+                do_login(self, socialauth.uid)
+            else:
+                _register_by_oauth(self, resp['access_token'], so_user, provider)
+
+            self.redirect('/')
 

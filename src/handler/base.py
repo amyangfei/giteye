@@ -20,11 +20,9 @@ class BaseHandler(tornado.web.RequestHandler):
     def user_model(self):
         return self.application.user_model
 
-    """
     @property
-    def topic_model(self):
-        return self.application.topic_model
-    """
+    def socialauth_model(self):
+        return self.application.socialauth_model
 
     @property
     def loader(self):
@@ -35,9 +33,9 @@ class BaseHandler(tornado.web.RequestHandler):
         return self.application.rc
 
     def get_current_user(self):
-        user_id = self.get_secure_cookie("user")
-        if not user_id: return None
-        return self.user_model.get_user_by_uid(int(user_id))
+        uid = self.get_secure_cookie("user")
+        if not uid: return None
+        return self.user_model.get_user_by_uid(int(uid))
 
     def render(self, template_name, **template_vars):
         html = self.render_string(template_name, **template_vars)

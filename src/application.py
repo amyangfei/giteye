@@ -60,7 +60,7 @@ class Application(tornado.web.Application):
 
         # Have one global model for db query
         self.user_model = self.loader.use("user.model")
-        #self.topic_model = self.loader.use("topic.model")
+        self.socialauth_model = self.loader.use("socialauth.model")
 
         # Have one global redis controller
         pool = redis.ConnectionPool(host=options.redis_host, port=options.redis_port, db=options.redis_db)
