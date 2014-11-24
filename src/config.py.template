@@ -1,11 +1,11 @@
 port=9999
 
-mysql_host="localhost"
+mysql_host="giteye-mysql"
 mysql_database="giteye"
 mysql_user="giteye"
 mysql_password="giteye"
 
-redis_host="localhost"
+redis_host="giteye-redis"
 redis_port=6379
 redis_db=0
 
